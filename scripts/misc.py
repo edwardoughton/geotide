@@ -13,7 +13,7 @@ CONFIG = configparser.ConfigParser()
 CONFIG.read(os.path.join(os.path.dirname(__file__), 'script_config.ini'))
 BASE_PATH = CONFIG['file_locations']['base_path']
 
-DATA_RAW = os.path.join(BASE_PATH, 'raw')
+DATA_RAW = os.path.join(BASE_PATH, 'raw', '..', '..', '..', 'data_raw')
 DATA_PROCESSED = os.path.join(BASE_PATH, 'processed')
 
 
@@ -31,7 +31,7 @@ def get_countries():
     """
     filename = "countries.csv"
     path = os.path.join(DATA_RAW, filename)
-
+    
     countries = pd.read_csv(path, encoding='latin-1')
     countries = countries[countries.Exclude == 0]
 
@@ -203,10 +203,10 @@ def process_regions(iso3, level):
 
 if __name__ == '__main__':
 
-    #countries = get_countries()
-    #for idx, country in countries.iterrows():
-    #    #if country['iso3'] == 'TJK':
-    #    print(country['country'])
+    countries = get_countries()
+    for idx, country in countries.iterrows():
+       #if country['iso3'] == 'TJK':
+       print(country['country'])
 
     # scenarios = get_scenarios()
     # for scenario in scenarios:
