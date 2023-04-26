@@ -22,7 +22,7 @@ Infrastructure disruption can lead to reduced domestic integration (i.e., lack o
 
 The method utilized within the *geotide* project is illustrated below and focuses on assessing both the direct and indirect costs to conflict-economies. 
 
-### Data layers utilized within the method
+### Data processing approach within *geotide*
 <p align="center">
   <img src="/figures/method.png" />
 </p>
