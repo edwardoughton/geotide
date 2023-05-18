@@ -21,6 +21,7 @@ DATA_PROCESSED = os.path.join(BASE_PATH, 'processed')
 def count_cells(country):
     """
     Add up cells by technology.
+    
     """
     regional_level = country['gid_region']
     gid_level = 'gid_{}'.format(regional_level) #regional_level
