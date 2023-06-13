@@ -42,26 +42,26 @@ def run_preprocessing(iso3):
     country = country.to_records('dicts')[0]
     regional_level = int(country['gid_region'])
 
-    # print('Working on create_national_sites_csv')
-    # create_national_sites_csv(country)
+    print('Working on create_national_sites_csv')
+    create_national_sites_csv(country)
 
-    # print('Working on process_country_shapes')
-    # process_country_shapes(iso3)
+    print('Working on process_country_shapes')
+    process_country_shapes(iso3)
 
-    # print('Working on process_regions')
-    # process_regions(iso3, regional_level)
+    print('Working on process_regions')
+    process_regions(iso3, regional_level)
 
-    # print('Working on create_national_sites_shp')
-    # create_national_sites_shp(iso3)
+    print('Working on create_national_sites_shp')
+    create_national_sites_shp(iso3)
 
-    # print('Working on process_acled_layer')
-    # process_acled_layer(iso3)
+    print('Working on process_acled_layer')
+    process_acled_layer(iso3)
 
     print('Working on subset_acled_telecom')
     intersect_acled(iso3)
 
-    # print('Working on process_scdi_layer')
-    # process_scdi_layer(iso3)
+    print('Working on process_scdi_layer')
+    process_scdi_layer(iso3)
     
     return
 
@@ -339,7 +339,7 @@ if __name__ == "__main__":
     failures = []
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['BFA']:#, 'MLI', 'NER']:
+        if not country['iso3'] in ['MLI', 'NER', 'BFA']:#, ]:
            continue
 
         print('Working on {}'.format(country['iso3']))
