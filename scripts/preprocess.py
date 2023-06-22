@@ -14,7 +14,7 @@ import pandas as pd
 import geopandas as gpd
 import pyproj
 from shapely.ops import transform
-from shapely.geometry import Point, box
+from shapely.geometry import Point, box, LineString
 import rasterio
 from rasterio.mask import mask
 from tqdm import tqdm
@@ -42,26 +42,26 @@ def run_preprocessing(iso3):
     country = country.to_records('dicts')[0]
     regional_level = int(country['gid_region'])
 
-    print('Working on create_national_sites_csv')
-    create_national_sites_csv(country)
+    # print('Working on create_national_sites_csv')
+    # create_national_sites_csv(country)
 
-    print('Working on process_country_shapes')
-    process_country_shapes(iso3)
+    # print('Working on process_country_shapes')
+    # process_country_shapes(iso3)
 
-    print('Working on process_regions')
-    process_regions(iso3, regional_level)
+    # print('Working on process_regions')
+    # process_regions(iso3, regional_level)
 
-    print('Working on create_national_sites_shp')
-    create_national_sites_shp(iso3)
+    # print('Working on create_national_sites_shp')
+    # create_national_sites_shp(iso3)
 
-    print('Working on process_acled_layer')
-    process_acled_layer(iso3)
+    # print('Working on process_acled_layer')
+    # process_acled_layer(iso3)
 
     print('Working on subset_acled_telecom')
     intersect_acled(iso3)
 
-    print('Working on process_scdi_layer')
-    process_scdi_layer(iso3)
+    # print('Working on process_scdi_layer')
+    # process_scdi_layer(iso3)
     
     return
 
@@ -239,7 +239,7 @@ def intersect_acled(iso3):
     filename = 'acled_{}.shp'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'acled')
     path_in = os.path.join(folder, filename)
-    data = gpd.read_file(path_in, crs='epsg:4326')#[:10]
+    data = gpd.read_file(path_in, crs='epsg:4326')#[:15]
     data = data.to_crs(3857)
     data['geometry'] = data['geometry'].buffer(10000)
 
@@ -249,12 +249,19 @@ def intersect_acled(iso3):
     cells = gpd.read_file(path_in, crs='epsg:4326') 
     cells = cells.to_crs(3857)
 
-    output = []
+    interim = []
+    seen = set()
 
     for idx, item in data.iterrows():
+
         for idx, cell in cells.iterrows():
             if item['geometry'].intersects(cell['geometry']):
-                output.append({
+
+                point1 = item['geometry'].centroid
+                point2 = cell['geometry'].centroid
+                distance = LineString([point1, point2]).length
+
+                interim.append({
                     'year': item['year'],
                     'month': item['month'],
                     'country_1': item['country_1'],
@@ -281,10 +288,44 @@ def intersect_acled(iso3):
                     'mcc': cell['mcc'],
                     'net': cell['net'],
                     'area': cell['area'],
-                })                
+                    'distance_to_event_m': distance
+                })          
+                seen.add(item['coordinate'])
+        if not item['coordinate'] in list(seen):
+            interim.append({
+                    'year': item['year'],
+                    'month': item['month'],
+                    'country_1': item['country_1'],
+                    'admin1': item['admin1'],
+                    'location': item['location'],
+                    'infra_cate': item['infra_cate'],
+                    'infra': item['infra'],
+                    'sub_event_': item['sub_event_'],
+                    'damage_inf': item['damage_inf'],
+                    'severity_i': item['severity_i'],
+                    'notes': item['notes'],
+                    'fatalities': item['fatalities'],
+                    'actor1': item['actor1'],
+                    'assoc_acto': item['assoc_acto'],
+                    'inter1': item['inter1'],
+                    'actor2': item['actor2'],
+                    'assoc_ac_1': item['assoc_ac_1'],
+                    'inter2': item['inter2'],
+                    'latitude': item['latitude'],
+                    'longitude': item['longitude'],
+                    'coordinate': item['coordinate'],
+                    'source': item['source'],
+                    'radio': 'NA',
+                    'mcc': 'NA',
+                    'net': 'NA',
+                    'area': 'NA',
+                    'distance_to_event_m': 'NA'
+                })
 
-    if len(output) == 0:
+    if len(interim) == 0:
         return
+
+    output = remove_duplicates(interim)
 
     output = pd.DataFrame.from_records(output)
 
@@ -297,6 +338,58 @@ def intersect_acled(iso3):
     output.to_csv(path_out, index=False)
 
     return
+
+
+def remove_duplicates(interim):
+    """
+    This function removes duplicated cells.
+    
+    Only the 3 nearest cells are selected for each radio, using the distance estimate.  
+    
+    """
+    output = []
+
+    coordinates = set()
+    for item in interim:
+        coordinates.add(item['coordinate'])
+
+    radios = ['GSM', 'UMTS', 'LTE'] 
+
+    for coordinate in list(coordinates):
+        
+        cells = []
+        
+        #first get cells matching coordinate
+        for item in interim:
+            if coordinate == item['coordinate']:
+                cells.append(item)
+
+        #then subset by radio type
+        for radio in radios:
+
+            cells_by_radio = []
+            
+            for item in cells:
+                if radio == item['radio']:
+                    cells_by_radio.append(item)
+
+            if not len(cells_by_radio) > 0:
+                continue
+
+            cells_by_radio = pd.DataFrame(cells_by_radio)
+            cells_by_radio = cells_by_radio.sort_values(by=['distance_to_event_m'], ascending=True)
+            #now get 3 closest cells
+            cells_by_radio = cells_by_radio[:3]
+            cells_by_radio = cells_by_radio.to_dict('records')
+            output = output + cells_by_radio
+
+        for item in cells:
+            if item['distance_to_event_m'] == 'NA':
+                output.append(item)
+                output.append(item)
+                output.append(item)
+
+    return output
 
 
 def process_scdi_layer(iso3):
@@ -332,19 +425,43 @@ def process_scdi_layer(iso3):
     return 
 
 
+def concat_results():
+    """
+    Generate single .csv file. 
+
+    """
+    output = []
+
+    folder = os.path.join(BASE_PATH, '..', 'results')
+    for subfolder in os.listdir(folder):
+
+        if subfolder.endswith(".csv"):
+            continue
+        
+        path = os.path.join(folder, subfolder, "acled_{}.csv".format(subfolder))
+        data = pd.read_csv(path)
+        data = data.to_dict('records')
+        output = output + data
+
+    output = pd.DataFrame(output)
+    output.to_csv(os.path.join(folder, "all_results.csv"), index=False)
+
+    return
+
+
 if __name__ == "__main__":
 
-    countries = get_countries()
+    # countries = get_countries()
 
-    failures = []
-    for idx, country in countries.iterrows():
+    # failures = []
+    # for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['MLI', 'NER', 'BFA']:#, ]:
-           continue
+    #     if not country['iso3'] in ['BFA', 'MLI', 'NER']:
+    #        continue
 
-        print('Working on {}'.format(country['iso3']))
+    #     print('Working on {}'.format(country['iso3']))
 
-        run_preprocessing(country['iso3'])
+    #     run_preprocessing(country['iso3'])
 
-
+    concat_results()
 
