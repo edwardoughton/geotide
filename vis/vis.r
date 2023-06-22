@@ -108,6 +108,9 @@ subset$handle = factor(subset$handle,
          "Niger (Post-2022)" 
        )
 )
+
+max_y_value = max(subset$count, na.rm = TRUE)
+
 #######by year
 ggplot(subset, aes(x=year, y=count, fill=radio)) +
   geom_bar(stat="identity") +
@@ -122,7 +125,7 @@ ggplot(subset, aes(x=year, y=count, fill=radio)) +
   guides(fill=guide_legend(ncol=4, title='Generation')) +
   scale_fill_viridis_d(direction=1) +
   scale_x_continuous(expand = c(0, 0), breaks = seq(2011, 2023, by=1)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 620)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'year_generation.png')
@@ -141,7 +144,7 @@ ggplot(subset, aes(x=year, y=count, fill=sub_event_)) +
   guides(fill=guide_legend(ncol=4, title='Sub-Event')) +
   scale_fill_viridis_d(direction=1) +
   scale_x_continuous(expand = c(0, 0), breaks = seq(2011, 2023, by=1)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 620)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'year_sub-event.png')
@@ -160,7 +163,7 @@ ggplot(subset, aes(x=year, y=count, fill=damage_inf)) +
   guides(fill=guide_legend(ncol=6, title='Damage')) +
   scale_fill_viridis_d(direction=1) +
   scale_x_continuous(expand = c(0, 0), breaks = seq(2011, 2023, by=1)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 620)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'year_damage.png')
@@ -179,7 +182,7 @@ ggplot(subset, aes(x=year, y=count, fill=actor1)) +
   guides(fill=guide_legend(ncol=2, title='Actor')) +
   scale_fill_viridis_d(direction=1) +
   scale_x_continuous(expand = c(0, 0), breaks = seq(2011, 2023, by=1)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 620)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'year_actor.png')
@@ -200,7 +203,7 @@ ggplot(subset, aes(x=sub_event_, y=count, fill=infra)) +
   guides(fill=guide_legend(ncol=6, title='Infra Type')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 620)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'sub-event_infra-type.png')
@@ -220,7 +223,7 @@ ggplot(subset, aes(x=sub_event_, y=count, fill=actor1)) +
   guides(fill=guide_legend(ncol=2, title='Actor')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 620)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'sub-event_actor.png')
@@ -240,7 +243,7 @@ ggplot(subset, aes(x=sub_event_, y=count, fill=damage_inf)) +
   guides(fill=guide_legend(ncol=6, title='Damage')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 620)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'sub-event_damage-inf.png')
@@ -263,7 +266,7 @@ ggplot(subset, aes(x=damage_inf, y=count, fill=infra)) +
   guides(fill=guide_legend(ncol=4, title='Infra Type')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 620)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'damage_infra-type.png')
@@ -284,7 +287,7 @@ ggplot(subset, aes(x=damage_inf, y=count, fill=actor1)) +
   guides(fill=guide_legend(ncol=2, title='Actor')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 620)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'damage_actor.png')
@@ -304,7 +307,7 @@ ggplot(subset, aes(x=damage_inf, y=count, fill=sub_event_)) +
   guides(fill=guide_legend(ncol=4, title='Sub-Event')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 620)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'damage_sub-event.png')
