@@ -451,17 +451,17 @@ def concat_results():
 
 if __name__ == "__main__":
 
-    # countries = get_countries()
+    countries = get_countries()
 
-    # failures = []
-    # for idx, country in countries.iterrows():
+    failures = []
+    for idx, country in countries.iterrows():
 
-    #     if not country['iso3'] in ['BFA', 'MLI', 'NER']:
-    #        continue
+        if not country['iso3'] in ['BFA', 'MLI', 'NER']:
+           continue
 
-    #     print('Working on {}'.format(country['iso3']))
+        print('Working on {}'.format(country['iso3']))
 
-    #     run_preprocessing(country['iso3'])
+        run_preprocessing(country['iso3'])
 
     concat_results()
 
