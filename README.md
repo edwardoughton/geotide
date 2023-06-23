@@ -22,8 +22,14 @@ Infrastructure disruption can lead to reduced domestic integration (i.e., lack o
 
 The method utilized within the *geotide* project is illustrated below and focuses on assessing both the direct and indirect costs to conflict-economies. 
 
+
 ### Data processing approach within *geotide*
 <p align="center">
   <img src="/figures/method.png" />
 </p>
 
+
+### Mapped attacks on telecom infrastructure using ACLED data
+<p align="center">
+  <img src="/vis/figures/acled.png" />
+</p>
