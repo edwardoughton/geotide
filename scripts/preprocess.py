@@ -17,6 +17,11 @@ from shapely.ops import transform
 from shapely.geometry import Point, box, LineString
 import rasterio
 from rasterio.mask import mask
+from rasterstats import zonal_stats
+import numpy as np
+from shapely.ops import cascaded_union
+from geovoronoi import voronoi_regions_from_coords, points_to_coords
+
 from tqdm import tqdm
 
 from misc import get_countries, process_country_shapes, process_regions, get_regions 
@@ -27,7 +32,7 @@ BASE_PATH = CONFIG['file_locations']['base_path']
 
 DATA_RAW = os.path.join(BASE_PATH, 'raw')
 DATA_PROCESSED = os.path.join(BASE_PATH, 'processed')
-
+RESULTS = os.path.join(BASE_PATH, '..', 'results')
 
 def run_preprocessing(iso3):
     """
@@ -57,12 +62,17 @@ def run_preprocessing(iso3):
     # print('Working on process_acled_layer')
     # process_acled_layer(iso3)
 
-    print('Working on subset_acled_telecom')
-    intersect_acled(iso3)
+    # print('Working on subset_acled_telecom')
+    # intersect_acled(iso3)
 
     # print('Working on process_scdi_layer')
     # process_scdi_layer(iso3)
     
+
+
+    # print('Estimate asset customers')
+    # estimate_asset_coverage(iso3)
+
     return
 
 
@@ -214,6 +224,12 @@ def process_acled_layer(iso3):
     folder = os.path.join(DATA_PROCESSED, iso3)
     path_in = os.path.join(folder, filename)
     national_outline = gpd.read_file(path_in, crs='epsg:4326')
+    national_outline = national_outline[['geometry']]#,'iso3','iso2','gid_region']]
+
+    filename = 'regions_{}_{}.shp'.format(1, iso3)
+    folder = os.path.join(DATA_PROCESSED, country['iso3'], 'regions')
+    path_in = os.path.join(folder, filename)
+    regions = gpd.read_file(path_in, crs='epsg:4326')#[:1]
 
     filename = 'D1_Infrastructure_Database.shp'
     folder = os.path.join(DATA_RAW, "acled")
@@ -223,6 +239,8 @@ def process_acled_layer(iso3):
     data = gpd.overlay(data, national_outline, how='intersection')
 
     data = data[data['infra_cate'] == 'communications']
+
+    data = gpd.overlay(data, regions, how='intersection')
 
     data.to_file(path_out, crs='epsg:4326')
 
@@ -239,7 +257,7 @@ def intersect_acled(iso3):
     filename = 'acled_{}.shp'.format(iso3)
     folder = os.path.join(DATA_PROCESSED, iso3, 'acled')
     path_in = os.path.join(folder, filename)
-    data = gpd.read_file(path_in, crs='epsg:4326')#[:15]
+    data = gpd.read_file(path_in, crs='epsg:4326')#[:5]
     data = data.to_crs(3857)
     data['geometry'] = data['geometry'].buffer(10000)
 
@@ -262,9 +280,14 @@ def intersect_acled(iso3):
                 distance = LineString([point1, point2]).length
 
                 interim.append({
+                    'GID_0': item['GID_0'],
+                    'NAME_0': item['NAME_0'],
+                    'GID_1': 'GID_1',
+                    'NAME_1': 'NAME_1',
                     'year': item['year'],
                     'month': item['month'],
-                    'country_1': item['country_1'],
+                    'day': item['day'],
+                    'country': item['country'],
                     'admin1': item['admin1'],
                     'location': item['location'],
                     'infra_cate': item['infra_cate'],
@@ -293,9 +316,14 @@ def intersect_acled(iso3):
                 seen.add(item['coordinate'])
         if not item['coordinate'] in list(seen):
             interim.append({
+                    'GID_0': item['GID_0'],
+                    'NAME_0': item['NAME_0'],
+                    'GID_1': 'GID_1',
+                    'NAME_1': 'NAME_1',
                     'year': item['year'],
                     'month': item['month'],
-                    'country_1': item['country_1'],
+                    'day': item['day'],
+                    'country': item['country'],
                     'admin1': item['admin1'],
                     'location': item['location'],
                     'infra_cate': item['infra_cate'],
@@ -425,6 +453,18 @@ def process_scdi_layer(iso3):
     return 
 
 
+def estimate_asset_coverage(iso3):
+    """
+    Intersect with population layer and count served customers. 
+
+    """
+    filename = "coverage_polygons.shp"
+    folder = os.path.join(DATA_PROCESSED, iso3, 'coverage_polygons')
+    path_in = os.path.join(folder, filename)
+    data = gpd.read_file(path_in, crs='epsg:4326')
+
+
+
 def concat_results():
     """
     Generate single .csv file. 
@@ -432,19 +472,115 @@ def concat_results():
     """
     output = []
 
-    folder = os.path.join(BASE_PATH, '..', 'results')
-    for subfolder in os.listdir(folder):
+    for subfolder in os.listdir(RESULTS):
 
         if subfolder.endswith(".csv"):
             continue
-        
-        path = os.path.join(folder, subfolder, "acled_{}.csv".format(subfolder))
+        if subfolder.endswith("xlsx"):
+            continue
+        path = os.path.join(RESULTS, subfolder, "acled_{}.csv".format(subfolder))
         data = pd.read_csv(path)
         data = data.to_dict('records')
         output = output + data
 
     output = pd.DataFrame(output)
-    output.to_csv(os.path.join(folder, "all_results.csv"), index=False)
+    output.to_csv(os.path.join(RESULTS, "all_results.csv"), index=False)
+
+    return
+
+
+def cost_analysis():
+    """
+    Carry out cost analysis. 
+    
+    """
+    filename = 'all_results.csv'
+    path_in = os.path.join(RESULTS, filename)
+    data = pd.read_csv(path_in)
+    coords = data['coordinate'].unique()
+
+    output = []
+
+    for coord in coords:
+        radios = []
+        for idx, item in data.iterrows():
+            if coord == item['coordinate']:
+                GID_0 = item['GID_0']
+                NAME_0 = item['NAME_0']
+                GID_1 = item['GID_1']
+                NAME_1 = item['NAME_1']
+                year = item['year']
+                month = item['month']
+                day = item['day']
+                country = item['country']
+                admin1 = item['admin1']
+                location = item['location']
+                infra_cate = item['infra_cate']
+                infra = item['infra']
+                sub_event_ = item['sub_event_']
+                damage_inf = item['damage_inf']
+                severity_i = item['severity_i']
+                notes = item['notes']
+                fatalities = item['fatalities']
+                actor1 = item['actor1']
+                assoc_acto = item['assoc_acto']
+                inter1 = item['inter1']
+                actor2 = item['actor2']
+                assoc_ac_1 = item['assoc_ac_1']
+                inter2 = item['inter2']
+                latitude = item['latitude']
+                longitude = item['longitude']
+                coordinate = item['coordinate']
+                source = item['source']
+                radios.append(item['radio'])
+                mcc = item['mcc']
+                net = item['net']
+
+        if 'LTE' in radios:
+            radio = 'LTE'
+        elif 'UMTS' in radios:
+            radio = 'UMTS'
+        else:
+            radio = 'GSM'
+
+        output.append({
+            'GID_0': GID_0,
+            'NAME_0': NAME_0,
+            'GID_1': GID_1,
+            'NAME_1': NAME_1,
+            'year': year,
+            'month': month,
+            'day': day,
+            'country': country,
+            'admin1': admin1,
+            'location': location,
+            'infra_cate': infra_cate,
+            'infra': infra,
+            'sub_event_': sub_event_,
+            'damage_inf': damage_inf,
+            'severity_i': severity_i,
+            'notes': notes,
+            'fatalities': fatalities,
+            'actor1': actor1,
+            'assoc_acto': assoc_acto,
+            'inter1': inter1,
+            'actor2': actor2,
+            'assoc_ac_1': assoc_ac_1,
+            'inter2': inter2,
+            'latitude': latitude,
+            'longitude': longitude,
+            'coordinate': coordinate,
+            'source': source,
+            'radio': radio,
+            'mcc': mcc,
+            'net': net,
+        })
+
+    output = pd.DataFrame(output)
+    
+    filename = 'site_count_info.csv'
+    path_out = os.path.join(RESULTS, filename)
+    output.to_csv(path_out, index=False)
 
     return
 
@@ -456,12 +592,13 @@ if __name__ == "__main__":
     failures = []
     for idx, country in countries.iterrows():
 
-        if not country['iso3'] in ['BFA', 'MLI', 'NER']:
+        if not country['iso3'] in ['BFA']:#, 'MLI', 'NER']:
            continue
 
         print('Working on {}'.format(country['iso3']))
 
         run_preprocessing(country['iso3'])
 
-    concat_results()
+    # concat_results()
 
+    # cost_analysis()

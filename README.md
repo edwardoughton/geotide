@@ -4,7 +4,7 @@ Welcome to the *geotide* project.
 
 The aim of *geotide* is to assess the costs of destroyed telecom infrastructure, both in terms of the direct impact (e.g., destroyed assets) and indirect impact (e.g., lost value added activities)? By producing such evidence it is possible to better design infrastructure investments and policies which more adequately account for conflict dynamics in conflict economies. 
 
-The initial research involved in this project focuses on the the Sahel area in West Africa, specifically Mali, Burkina Faso and western Niger. Unfortunately, armed insurgencies have had notable impacts on infrastructure, with Boko Haram militants explicitely targeting telecommunication infrastructure assets.
+The initial research involved in this project focuses on the Sahel area in West Africa, specifically Mali, Burkina Faso and western Niger. Unfortunately, armed insurgencies have had notable impacts on infrastructure, with Boko Haram militants explicitly targeting telecommunication infrastructure assets.
 
 ## Background
 
@@ -22,8 +22,16 @@ Infrastructure disruption can lead to reduced domestic integration (i.e., lack o
 
 The method utilized within the *geotide* project is illustrated below and focuses on assessing both the direct and indirect costs to conflict-economies. 
 
+
 ### Data processing approach within *geotide*
 <p align="center">
   <img src="/figures/method.png" />
 </p>
 
+
+Data mapped from the Armed Conflict Location & Event Data Project (ACLED) provides information on telecommunication infrastructure damage by latitude-longitude coordinate, date, actor(s) and associated fatalities resulting from political violence and protests around the world. Here the data are visualized for The Sahel region of West Africa, specifically Burkina Faso, Mali and Niger. 
+
+### Mapped attacks on telecom infrastructure using ACLED data
+<p align="center">
+  <img src="/vis/figures/acled.png" />
+</p>

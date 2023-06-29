@@ -18,15 +18,7 @@ get_data <- function(iso3) { # create a function with the name my_function
 
 data1 = get_data('BFA')
 data2 = get_data('MLI')
-# unique(data2$infra_cate)
-# unique(data2$infra)
-# unique(data2$damage_inf)
-# unique(data2$actor1)
 data3 = get_data('NER')
-# unique(data3$infra_cate)
-# unique(data3$infra)
-# unique(data3$damage_inf)
-# unique(data3$actor1)
 
 data = rbind(data1, data2, data3)
 
@@ -109,11 +101,17 @@ subset$handle = factor(subset$handle,
        )
 )
 
-max_y_value = max(subset$count, na.rm = TRUE)
+totals <- subset %>%
+  group_by(handle, year) %>%
+  summarize(count = sum(count))
+max_y_value = max(totals$count, na.rm = TRUE)
 
 #######by year
 ggplot(subset, aes(x=year, y=count, fill=radio)) +
-  geom_bar(stat="identity") +
+  geom_col() +
+  geom_text(aes(year, count, label = count,  #y=0, 
+                fill = NULL), show.legend = FALSE, ##FF0000FF
+            size = 2, data = totals, vjust=-.9, hjust=.5) +
   theme(legend.position = 'bottom',
       axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
@@ -125,7 +123,7 @@ ggplot(subset, aes(x=year, y=count, fill=radio)) +
   guides(fill=guide_legend(ncol=4, title='Generation')) +
   scale_fill_viridis_d(direction=1) +
   scale_x_continuous(expand = c(0, 0), breaks = seq(2011, 2023, by=1)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value + 20)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'year_generation.png')
@@ -133,6 +131,9 @@ ggsave(path, units="in", width=8, height=8, dpi=300)
 
 ggplot(subset, aes(x=year, y=count, fill=sub_event_)) +
   geom_bar(stat="identity") +
+  geom_text(aes(year, count, label = count,  #y=0, 
+                fill = NULL), show.legend = FALSE, ##FF0000FF
+            size = 2, data = totals, vjust=-.9, hjust=.5) +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
@@ -144,7 +145,7 @@ ggplot(subset, aes(x=year, y=count, fill=sub_event_)) +
   guides(fill=guide_legend(ncol=4, title='Sub-Event')) +
   scale_fill_viridis_d(direction=1) +
   scale_x_continuous(expand = c(0, 0), breaks = seq(2011, 2023, by=1)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+20)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'year_sub-event.png')
@@ -152,6 +153,9 @@ ggsave(path, units="in", width=8, height=8, dpi=300)
 
 ggplot(subset, aes(x=year, y=count, fill=damage_inf)) +
   geom_bar(stat="identity") +
+  geom_text(aes(year, count, label = count,  #y=0, 
+                fill = NULL), show.legend = FALSE, ##FF0000FF
+            size = 2, data = totals, vjust=-.9, hjust=.5) +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
@@ -163,7 +167,7 @@ ggplot(subset, aes(x=year, y=count, fill=damage_inf)) +
   guides(fill=guide_legend(ncol=6, title='Damage')) +
   scale_fill_viridis_d(direction=1) +
   scale_x_continuous(expand = c(0, 0), breaks = seq(2011, 2023, by=1)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+20)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'year_damage.png')
@@ -171,6 +175,9 @@ ggsave(path, units="in", width=8, height=8, dpi=300)
 
 ggplot(subset, aes(x=year, y=count, fill=actor1)) +
   geom_bar(stat="identity") +
+  geom_text(aes(year, count, label = count,  #y=0, 
+                fill = NULL), show.legend = FALSE, ##FF0000FF
+            size = 2, data = totals, vjust=-.9, hjust=.5) +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
   labs(colour=NULL,
@@ -182,15 +189,23 @@ ggplot(subset, aes(x=year, y=count, fill=actor1)) +
   guides(fill=guide_legend(ncol=2, title='Actor')) +
   scale_fill_viridis_d(direction=1) +
   scale_x_continuous(expand = c(0, 0), breaks = seq(2011, 2023, by=1)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+20)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'year_actor.png')
 ggsave(path, units="in", width=8, height=8, dpi=300)
 
 #######by sub-event
+totals <- subset %>%
+  group_by(handle, sub_event_) %>%
+  summarize(count = sum(count))
+max_y_value = max(totals$count, na.rm = TRUE)
+
 ggplot(subset, aes(x=sub_event_, y=count, fill=infra)) +
   geom_bar(stat="identity") +
+  geom_text(aes(sub_event_, count, label = count,  #y=0,
+                fill = NULL), show.legend = FALSE, ##FF0000FF
+            size = 2, data = totals, vjust=.3, hjust=-.5) +
   coord_flip() +
   theme(legend.position = 'bottom',
       axis.text.x = element_text(angle=45, hjust=1)) +
@@ -203,7 +218,7 @@ ggplot(subset, aes(x=sub_event_, y=count, fill=infra)) +
   guides(fill=guide_legend(ncol=6, title='Infra Type')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+10)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'sub-event_infra-type.png')
@@ -211,6 +226,9 @@ ggsave(path, units="in", width=8, height=8, dpi=300)
 
 ggplot(subset, aes(x=sub_event_, y=count, fill=actor1)) +
   geom_bar(stat="identity") +
+  geom_text(aes(sub_event_, count, label = count,  #y=0,
+                fill = NULL), show.legend = FALSE, ##FF0000FF
+            size = 2, data = totals, vjust=.3, hjust=-.5) +
   coord_flip() +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
@@ -223,7 +241,7 @@ ggplot(subset, aes(x=sub_event_, y=count, fill=actor1)) +
   guides(fill=guide_legend(ncol=2, title='Actor')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+10)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'sub-event_actor.png')
@@ -231,6 +249,9 @@ ggsave(path, units="in", width=8, height=8, dpi=300)
 
 ggplot(subset, aes(x=sub_event_, y=count, fill=damage_inf)) +
   geom_bar(stat="identity") +
+  geom_text(aes(sub_event_, count, label = count,  #y=0,
+                fill = NULL), show.legend = FALSE, ##FF0000FF
+            size = 2, data = totals, vjust=.3, hjust=-.5) +
   coord_flip() +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
@@ -243,7 +264,7 @@ ggplot(subset, aes(x=sub_event_, y=count, fill=damage_inf)) +
   guides(fill=guide_legend(ncol=6, title='Damage')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+10)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'sub-event_damage-inf.png')
@@ -251,9 +272,16 @@ ggsave(path, units="in", width=8, height=8, dpi=300)
 
 
 #####damage type
+totals <- subset %>%
+  group_by(handle, damage_inf) %>%
+  summarize(count = sum(count))
+max_y_value = max(totals$count, na.rm = TRUE)
 
 ggplot(subset, aes(x=damage_inf, y=count, fill=infra)) +
   geom_bar(stat="identity") +
+  geom_text(aes(damage_inf, count, label = count,  #y=0,
+                fill = NULL), show.legend = FALSE, ##FF0000FF
+            size = 2, data = totals, vjust=.4, hjust=-.7) +
   coord_flip() +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
@@ -266,7 +294,7 @@ ggplot(subset, aes(x=damage_inf, y=count, fill=infra)) +
   guides(fill=guide_legend(ncol=4, title='Infra Type')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+7)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'damage_infra-type.png')
@@ -275,6 +303,9 @@ ggsave(path, units="in", width=8, height=8, dpi=300)
 
 ggplot(subset, aes(x=damage_inf, y=count, fill=actor1)) +
   geom_bar(stat="identity") +
+  geom_text(aes(damage_inf, count, label = count,  #y=0,
+                fill = NULL), show.legend = FALSE, ##FF0000FF
+            size = 2, data = totals, vjust=.4, hjust=-.7) +
   coord_flip() +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
@@ -287,7 +318,7 @@ ggplot(subset, aes(x=damage_inf, y=count, fill=actor1)) +
   guides(fill=guide_legend(ncol=2, title='Actor')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+7)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'damage_actor.png')
@@ -295,6 +326,9 @@ ggsave(path, units="in", width=8, height=8, dpi=300)
 
 ggplot(subset, aes(x=damage_inf, y=count, fill=sub_event_)) +
   geom_bar(stat="identity") +
+  geom_text(aes(damage_inf, count, label = count,  #y=0,
+                fill = NULL), show.legend = FALSE, ##FF0000FF
+            size = 2, data = totals, vjust=.4, hjust=-.7) +
   coord_flip() +
   theme(legend.position = 'bottom',
         axis.text.x = element_text(angle=45, hjust=1)) +
@@ -307,7 +341,7 @@ ggplot(subset, aes(x=damage_inf, y=count, fill=sub_event_)) +
   guides(fill=guide_legend(ncol=4, title='Sub-Event')) +
   scale_fill_viridis_d(direction=1) +
   # scale_x_discrete(expand = c(0, 0.15)) +
-  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value)) +
+  scale_y_continuous(expand = c(0, 0), limits=c(0, max_y_value+7)) +
   facet_wrap(~handle, ncol=2)
 
 path = file.path(folder, 'figures', 'damage_sub-event.png')
