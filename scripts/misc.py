@@ -201,14 +201,46 @@ def process_regions(iso3, level):
     return
 
 
+income_lut = {
+    'BFA': {
+        ".6_1": 1773,
+        ".2_.6": 637,
+        "-.2_.2": 398,
+        "-.6_-.2": 281,
+        "-1_-.6": 180,
+    },
+    'MLI': {
+        ".6_1": 1563,
+        ".2_.6": 787,
+        "-.2_.2": 545,
+        "-.6_-.2": 399,
+        "-1_-.6": 267,
+    },
+    'NER': {
+        ".6_1": 1266,
+        ".2_.6": 565,
+        "-.2_.2": 415,
+        "-.6_-.2": 316,
+        "-1_-.6": 210,
+    },
+}
+
+
+parameters = {
+    'restoration_days': 21,
+    'dependence_percent': 20,
+    'annual_protection_costs': 800, 
+    'time_period': 5,
+    'total_sites_BFA': 1700, #towerxchange
+    'total_sites_MLI': 1900, #towerxchange
+    'total_sites_NER': 1800, #towerxchange
+    'sites_to_protect': 5,
+}
+
+
 if __name__ == '__main__':
 
     countries = get_countries()
     for idx, country in countries.iterrows():
-       #if country['iso3'] == 'TJK':
        print(country['country'])
-
-    # scenarios = get_scenarios()
-    # for scenario in scenarios:
-    #     print(scenario)
 
