@@ -972,12 +972,6 @@ if __name__ == '__main__':
         # print('Getting regional data')
         get_regional_data(country)
 
-        # print('Create subscription forcast')
-        # forecast_subscriptions(country)
 
-        # print('Forecasting smartphones')
-        # forecast_smartphones(country)
-        # except:
-        #     print('Failed on {}: {}'.format(country['country'], country['iso3']))
 
     print('--Completed regional population data estimation')
