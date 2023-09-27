@@ -270,18 +270,90 @@ def site_cost_benefit_metrics(iso3, parameters):
 
         output.append({
             'space_time_id': item['space_time_id'],
-            'direct_cost': direct_cost,
-            'indirect_cost_usd': indirect_cost_usd,
-            'value_at_risk': value_at_risk,
-            'protection_costs': protection_costs,
+            'GID_0': item['GID_0'],
+            'NAME_0': item['NAME_0'],
+            'GID_2': item['GID_2'],
+            'NAME_1': item['NAME_1'],
+            'year': item['year'],
+            'month': item['month'],
+            'day': item['day'],
+            'country': iso3,
+            'admin1': item['admin1'],
+            'location': item['location'],
+            'infra_cate': item['infra_cate'],
+            'infra': item['infra'],
+            'sub_event_': item['sub_event_'],
+            'damage_inf': item['damage_inf'],
+            'severity_i': item['severity_i'],
+            'notes': item['notes'],
+            'fatalities': item['fatalities'],
+            'actor1': item['actor1'],
+            'assoc_acto': item['assoc_acto'],
+            'inter1': item['inter1'],
+            'actor2': item['actor2'],
+            'assoc_ac_1': item['assoc_ac_1'],
+            'inter2': item['inter2'],
+            'source': item['source'],
+            'radio': item['radio'],
+            'mcc': item['mcc'],
+            'net': item['net'],
+            'ran_usd': item['ran_usd'],
+            'tower_usd': item['tower_usd'],
+            'power_usd': item['power_usd'],
+            'backhaul_usd': item['backhaul_usd'],
+            'labor_usd': item['labor_usd'],
+            'total_usd': item['total_usd'],
+            'pop': round(item['pop']),
+            'wealth_usd': item['wealth_usd'],
+            'wealth_cfa': item['wealth_cfa'],
+            'usd_to_cfa': item['usd_to_cfa'], 
+            'direct_cost': round(direct_cost),
+            'indirect_cost_usd': round(indirect_cost_usd),
+            'value_at_risk': round(value_at_risk),
+            'protection_costs': round(protection_costs),
         })
 
     output = pd.DataFrame(output)
+
+    output['benefit-cost-ratio'] = round(output['value_at_risk'] / output['protection_costs'],1)
 
     filename = 'cba_site_results_{}.csv'.format(iso3)
     folder = os.path.join(RESULTS, iso3)
     path = os.path.join(folder, filename)
     output.to_csv(path, index=False)
+
+    return
+
+
+def aggregate_country_results():
+    """
+    Aggregate cost benefit metrics by country. 
+
+    """
+    output = []
+
+    filenames = [
+        'cba_site_results_',
+        # 'combined_results_'
+    ]
+
+    for short_filename in filenames:
+
+        for iso3 in ['BFA','MLI','NER']:
+
+            filename = short_filename + '{}.csv'.format(iso3)
+            folder = os.path.join(RESULTS, iso3)
+            path = os.path.join(folder, filename)
+            data = pd.read_csv(path)
+            data = data.to_dict('records')
+            output = output + data
+
+        output = pd.DataFrame(output)
+
+        filename = '{}.csv'.format(short_filename[:-1])
+        folder = os.path.join(RESULTS)
+        path = os.path.join(folder, filename)
+        output.to_csv(path, index=False)
 
     return
 
@@ -347,4 +419,6 @@ if __name__ == "__main__":
 
         site_cost_benefit_metrics(country['iso3'], parameters)
 
-    country_cost_benefit_metrics()
+    aggregate_country_results()
+
+    # country_cost_benefit_metrics()
