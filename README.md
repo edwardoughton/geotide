@@ -33,5 +33,5 @@ Data mapped from the Armed Conflict Location & Event Data Project (ACLED) provid
 
 ### Mapped attacks on telecom infrastructure using ACLED data
 <p align="center">
-  <img src="/vis/figures/acled.png" />
+  <img src="/vis/figures/gif.gif" />
 </p>

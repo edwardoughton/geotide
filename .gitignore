@@ -161,3 +161,5 @@ cython_debug/
 
 data/raw/*
 data/processed/*
+
+vis/figures/gif_maps/*
