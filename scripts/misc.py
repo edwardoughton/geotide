@@ -235,6 +235,7 @@ parameters = {
     'total_sites_MLI': 1900, #towerxchange
     'total_sites_NER': 1800, #towerxchange
     'sites_to_protect': 5,
+    'usd_to_cfa': 0.0016, #1usd to 0.0016 CFA
 }
 
 

@@ -143,12 +143,11 @@ def calc_direct_costs(iso3):
     return
 
 
-def indirect_cost_analysis(iso3, income_lut):
+def indirect_cost_analysis(iso3, income_lut, parameters):
     """
     Estimate indirect costs. 
 
     """
-
     filename = 'customers_per_site.csv'
     folder = os.path.join(RESULTS, iso3)
     path = os.path.join(folder, filename)
@@ -180,17 +179,19 @@ def indirect_cost_analysis(iso3, income_lut):
 
                         break
 
-                wealth = item['pop'] * income
+                wealth_usd = item['pop'] * income
 
                 output.append({
                     'space_time_id': item['space_time_id'],
                     'pop': item['pop'],
                     'rwi': item['rwi'],
                     'error': item['error'],
-                    'wealth': wealth 
+                    'wealth_usd': int(wealth_usd),
+                    'wealth_cfa': int(round(wealth_usd * parameters['usd_to_cfa'], 0)),#usd to west african franc 
                 })
     
     output = pd.DataFrame(output)
+    output['usd_to_cfa'] = parameters['usd_to_cfa']
     filename = 'indirect_by_site_long_{}.csv'.format(iso3)
     folder = os.path.join(RESULTS, iso3)
     path = os.path.join(folder, filename)
@@ -199,7 +200,8 @@ def indirect_cost_analysis(iso3, income_lut):
     filename = 'indirect_by_site_{}.csv'.format(iso3)
     folder = os.path.join(RESULTS, iso3)
     path = os.path.join(folder, filename)
-    output = output.groupby(['space_time_id'])[('pop', 'wealth')].sum().reset_index()
+    output = output.groupby(['space_time_id'])[('pop', 'wealth_usd', 'wealth_cfa')].sum().reset_index()
+    output['usd_to_cfa'] = parameters['usd_to_cfa']
     output.to_csv(path, index=False)
 
     return
@@ -250,13 +252,13 @@ def site_cost_benefit_metrics(iso3, parameters):
 
         direct_cost = item['total_usd']
         
-        indirect_cost = (
-            (item['wealth']/365) * 
+        indirect_cost_usd = (
+            (item['wealth_usd']/365) * 
             parameters['restoration_days'] * 
             (parameters['dependence_percent']/100)
         )
 
-        value_at_risk = direct_cost + indirect_cost
+        value_at_risk = direct_cost + indirect_cost_usd
 
         protection_costs = (
             parameters['annual_protection_costs'] * 
@@ -269,7 +271,7 @@ def site_cost_benefit_metrics(iso3, parameters):
         output.append({
             'space_time_id': item['space_time_id'],
             'direct_cost': direct_cost,
-            'indirect_cost': indirect_cost,
+            'indirect_cost_usd': indirect_cost_usd,
             'value_at_risk': value_at_risk,
             'protection_costs': protection_costs,
         })
@@ -339,7 +341,7 @@ if __name__ == "__main__":
 
         calc_direct_costs(country['iso3'])
 
-        indirect_cost_analysis(country['iso3'], income_lut)
+        indirect_cost_analysis(country['iso3'], income_lut, parameters)
 
         combined_data(country['iso3'])
 
