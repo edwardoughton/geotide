@@ -268,8 +268,12 @@ def site_cost_benefit_metrics(iso3, parameters):
             len(data)
         )
 
+        year, month, day, longitude, latitude = item['space_time_id'].split("_")
+
         output.append({
             'space_time_id': item['space_time_id'],
+            'longitude': longitude,
+            'latitude': latitude,
             'GID_0': item['GID_0'],
             'NAME_0': item['NAME_0'],
             'GID_2': item['GID_2'],
@@ -399,6 +403,34 @@ def country_cost_benefit_metrics():
     return
 
 
+def aggregate_cell_data():
+    """
+    Aggregate cells data. 
+
+    """
+    output = []
+
+    for iso3 in ['BFA','MLI','NER']:
+
+        filename = '{}.csv'.format(iso3)
+        folder = os.path.join(BASE_PATH, 'processed', iso3, 'sites')
+        path = os.path.join(folder, filename)
+        data = pd.read_csv(path)
+        data['GID_0'] = iso3
+        data = data[['radio','mcc','net','area','cell','unit','lon','lat','GID_0']]
+        data = data.to_dict('records')
+        output = output + data
+
+    output = pd.DataFrame(output)
+
+    filename = 'all_cell_data.csv'
+    folder = os.path.join(RESULTS)
+    path = os.path.join(folder, filename)
+    output.to_csv(path, index=False)
+
+    return
+
+
 if __name__ == "__main__":
 
     countries = get_countries()
@@ -421,4 +453,6 @@ if __name__ == "__main__":
 
     aggregate_country_results()
 
-    # country_cost_benefit_metrics()
+    country_cost_benefit_metrics()
+
+    aggregate_cell_data()
